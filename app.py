@@ -28,7 +28,7 @@ def put_db():
     age = request.args.get('age')
     userId = request.args.get('id')
     params = (user, age, userId)
-    if user != "" and age is not None and userId is not None:
+    if user is not None and age is not None and userId is not None:
         cursor.execute(f"INSERT INTO people VALUES (?,?,?)", params)
         connection.commit()
         return f'Data added Successfully for user: {user}'
