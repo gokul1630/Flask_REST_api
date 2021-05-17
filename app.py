@@ -96,7 +96,7 @@ def top_function():
                 connection.commit()
                 return getAllResponse()
         else:
-            return "ProvuserIde value for update database"
+            return "Provide userId value for update database"
 
 
 # DELETE
