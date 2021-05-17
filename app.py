@@ -40,99 +40,87 @@ def root():
     return response
 
 
-@app.route('/post', methods=['POST'])
-def put_db():
+@app.route('/users', methods=['GET', 'POST', 'PATCH', 'DELETE'])
+def top_function():
     user = request.args.get('user')
     age = request.args.get('age')
     userId = request.args.get('id')
     params = (user, age, userId)
-    if user is not None and age is not None and userId is not None:
-        cursor.execute(f"INSERT INTO people VALUES (?,?,?)", params)
-        connection.commit()
-        return getAllResponse()
-    else:
-        return "please submit all values"
-
-
-@app.route('/get', methods=['GET'])
-def get_db():
-    user = request.args.get('user')
-    Id = request.args.get('id')
-    if user is not None:
-        res = cursor.execute(
-            'select * from people where name=?', (user,)).fetchall()
-        if len(res) == 0:
-            return f"User {user} not found on database"
-        else:
-            result = cursor.execute(
-                "SELECT * FROM people WHERE name=?", (user,)).fetchall()
-            response = {"users": [dict(i) for i in result]}
-            return json.dumps(response)
-    if Id is not None:
-        res = cursor.execute(
-            'select * from people where id=?', (Id,)).fetchall()
-        if len(res) == 0:
-            return f"Id {Id} not found on database"
-        else:
-            result = cursor.execute(
-                "SELECT * FROM people WHERE id=?", (Id,)).fetchall()
-            response = {"users": [dict(i) for i in result]}
-            return json.dumps(response)
-    else:
-        getAllResponse()
-
-
-@app.route('/update', methods=['PATCH'])
-def update_db():
-    user = request.args.get('user')
-    age = request.args.get('age')
-    Id = request.args.get('id')
-    if user and Id is not None:
-        res = cursor.execute(
-            'select * from people where id=?', (Id,)).fetchall()
-        if len(res) == 0:
-            return f"Id {Id} doesn't exists on database"
-        else:
-            cursor.execute('UPDATE people SET name=? WHERE id=?', (user, Id,))
+# POST
+    if request.method == 'POST':
+        if user is not None and age is not None and userId is not None:
+            cursor.execute(f"INSERT INTO people VALUES (?,?,?)", params)
             connection.commit()
             return getAllResponse()
-    if age and Id is not None:
-        res = cursor.execute(
-            'select * from people where id=?', (Id,)).fetchall()
-        if len(res) == 0:
-            return f"Id {Id} doesn't exists on database"
         else:
-            cursor.execute('UPDATE people SET age=? WHERE id=?', (age, Id,))
-            connection.commit()
-            return getAllResponse()
-    else:
-        return "Provide value for update database"
+            return 'Please Provide All Values'
 
 
-@app.route('/delete', methods=['DELETE'])
-def delete_db():
-    Id = request.args.get('id')
-    user = request.args.get('user')
-    if Id is not None:
-        res = cursor.execute(
-            'select * from people where id=?', (Id,)).fetchall()
-        if len(res) == 0:
-            return f"Id {Id} doesn't exists on database"
+# GET
+    elif request.method == 'GET':
+        if user or userId is not None:
+            res = cursor.execute(
+                'select * from people where name=? or id=?', (user, userId,)).fetchall()
+            if len(res) == 0:
+                if(user != None):
+                    return f"User {user} not found on database"
+                else:
+                    return f"userId {userId} not found on database"
+            else:
+                response = {"users": [dict(i) for i in res]}
+                return json.dumps(response)
         else:
-            cursor.execute('DELETE FROM people WHERE id=?', (Id,))
-            connection.commit()
             return getAllResponse()
-    elif user is not None:
-        res = cursor.execute(
-            'select * from people where name=?', (user,)).fetchall()
-        if len(res) == 0:
-            return f"User {user} doesn't exists on database"
+
+
+# PATCH
+    elif request.method == 'PATCH':
+        if user and userId is not None:
+            res = cursor.execute(
+                'select * from people where id=?', (userId,)).fetchall()
+            if len(res) == 0:
+                return f"id {userId} doesn't exists on database"
+            else:
+                cursor.execute(
+                    'UPDATE people SET name=? WHERE id=?', (user, userId,))
+                connection.commit()
+                return getAllResponse()
+        if age and userId is not None:
+            res = cursor.execute(
+                'select * from people where id=?', (userId,)).fetchall()
+            if len(res) == 0:
+                return f"id {userId} doesn't exists on database"
+            else:
+                cursor.execute(
+                    'UPDATE people SET age=? WHERE id=?', (age, userId,))
+                connection.commit()
+                return getAllResponse()
         else:
-            cursor.execute('DELETE FROM people WHERE name=?', (user,))
-            connection.commit()
-            return getAllResponse()
-    else:
-        return "please provide values to delete user"
+            return "ProvuserIde value for update database"
+
+
+# DELETE
+    elif request.method == 'DELETE':
+        if userId is not None:
+            res = cursor.execute(
+                'select * from people where id=?', (userId,)).fetchall()
+            if len(res) == 0:
+                return f"id {userId} doesn't exists on database"
+            else:
+                cursor.execute('DELETE FROM people WHERE id=?', (userId,))
+                connection.commit()
+                return getAllResponse()
+        elif user is not None:
+            res = cursor.execute(
+                'select * from people where name=?', (user,)).fetchall()
+            if len(res) == 0:
+                return f"User {user} doesn't exists on database"
+            else:
+                cursor.execute('DELETE FROM people WHERE name=?', (user,))
+                connection.commit()
+                return getAllResponse()
+        else:
+            return "please provide Id value to delete user"
 
 
 if __name__ == "__main__":
