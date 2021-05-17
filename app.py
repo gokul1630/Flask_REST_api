@@ -30,9 +30,14 @@ except Exception as e:
 
 @app.route('/', methods=['GET'])
 def root():
-    response = {"message": "Welcome To Flask Server",
-                "status": "Flask server running"}
-    return json.dumps(response)
+    message = {"message": "Welcome To Flask Server",
+               "status": "Flask server running"}
+    response = app.response_class(
+        response=json.dumps(message),
+        status=200,
+        mimetype='application/json'
+    )
+    return response
 
 
 @app.route('/post', methods=['POST'])
