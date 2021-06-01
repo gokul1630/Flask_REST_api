@@ -1,9 +1,10 @@
 import json
 import sqlite3
 from flask import Flask, request
-from flask.sessions import NullSession
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 connection = sqlite3.connect("log.db", check_same_thread=False)
 connection.row_factory = sqlite3.Row
 cursor = connection.cursor()
