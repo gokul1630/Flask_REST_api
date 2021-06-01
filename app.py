@@ -1,7 +1,7 @@
 import json
 import sqlite3
-
 from flask import Flask, request
+from flask.sessions import NullSession
 
 app = Flask(__name__)
 connection = sqlite3.connect("log.db", check_same_thread=False)
@@ -11,7 +11,7 @@ cursor = connection.cursor()
 
 def getAllResponse():
     result = cursor.execute("SELECT * FROM people").fetchall()
-    jsonResponse = {"users": [dict(i) for i in result]}
+    jsonResponse = [dict(i) for i in result]
     response = app.response_class(
         response=json.dumps(jsonResponse),
         status=200,
@@ -22,7 +22,7 @@ def getAllResponse():
 
 try:
     cursor.execute(
-        "CREATE TABLE IF NOT EXISTS people (name TEXT,age INT,id INT)")
+        "CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT,age INT)")
     print('Table Created Successfully')
 except Exception as e:
     print(e)
@@ -42,18 +42,27 @@ def root():
 
 @app.route('/users', methods=['GET', 'POST', 'PATCH', 'DELETE'])
 def top_function():
-    user = request.args.get('user')
-    age = request.args.get('age')
-    userId = request.args.get('id')
-    params = (user, age, userId)
-# POST
+    user = None
+    age = None
+    userId = None
+    # user = request.args.get('user')
+    # age = request.args.get('age')
+    # userId = request.args.get('id')
+    if (request.get_json() != None):
+        users = request.get_json()
+        user = users['user']
+        age = users['age']
+        # userId = users['id']
+
+    # POST
     if request.method == 'POST':
-        if user is not None and age is not None and userId is not None:
-            cursor.execute(f"INSERT INTO people VALUES (?,?,?)", params)
+        if user is not None and age is not None:
+            cursor.execute(f"INSERT INTO people(name,age) VALUES(?,?)",
+                           (user, age,))
             connection.commit()
             return getAllResponse()
         else:
-            return 'Please Provide All Values'
+            return getAllResponse()
 
 
 # GET
@@ -67,7 +76,7 @@ def top_function():
                 else:
                     return f"userId {userId} not found on database"
             else:
-                response = {"users": [dict(i) for i in res]}
+                response = [dict(i) for i in res]
                 return json.dumps(response)
         else:
             return getAllResponse()
@@ -124,4 +133,4 @@ def top_function():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(threaded=True, port=5000)
