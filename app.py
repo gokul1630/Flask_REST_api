@@ -51,13 +51,22 @@ def top_function():
     # userId = request.args.get('id')
     if (request.get_json() != None):
         users = request.get_json()
-        user = users['user']
-        age = users['age']
-        # userId = users['id']
+        try:
+            user = users['user']
+        except:
+            user = None
+        try:
+            age = users['age']
+        except:
+            age = None
+        try:
+            userId = users['id']
+        except:
+            userId = None
 
     # POST
     if request.method == 'POST':
-        if user is not None and age is not None:
+        if user and age is not None:
             cursor.execute(f"INSERT INTO people(name,age) VALUES(?,?)",
                            (user, age,))
             connection.commit()
